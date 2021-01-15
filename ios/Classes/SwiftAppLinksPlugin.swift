@@ -49,14 +49,71 @@ public class SwiftAppLinksPlugin: NSObject, FlutterPlugin {
       default: return false
     }
   }
+    /*
+     engine code
+     
+     https://github.com/flutter/engine/blob/3073402ae484487e52b8f09d04f3e1d382e697ea/shell/platform/darwin/ios/framework/Source/FlutterPluginAppLifeCycleDelegate.mm#L106
+     
+ - (BOOL)application:(UIApplication*)application
+     didFinishLaunchingWithOptions:(NSDictionary*)launchOptions {
+   for (NSObject<FlutterApplicationLifeCycleDelegate>* delegate in [_delegates allObjects]) {
+     if (!delegate) {
+       continue;
+     }
+     if ([delegate respondsToSelector:_cmd]) {
+       if (![delegate application:application didFinishLaunchingWithOptions:launchOptions]) {
+         return NO; // <<------ this return
+       }
+     }
+   }
+   return YES;
+ }
+     
+     */
+  public func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [AnyHashable : Any] = [:]) -> Bool {
+      if let urlObj = launchOptions[UIApplication.LaunchOptionsKey.url] {
+        if let url = urlObj as? URL {
+            handleLink(url: url)
+        }
+      }
+    // return false ，Interrupt subsequent plug-in calls， Functions with the same name in UniLinksPlugin will not be called
+      return false
+  }
 
-  // Custom URL schemes
+  
+    /*
+     engine code
+     
+     https://github.com/flutter/engine/blob/3073402ae484487e52b8f09d04f3e1d382e697ea/shell/platform/darwin/ios/framework/Source/FlutterPluginAppLifeCycleDelegate.mm#L313
+     
+ - (BOOL)application:(UIApplication*)application
+             openURL:(NSURL*)url
+             options:(NSDictionary<UIApplicationOpenURLOptionsKey, id>*)options {
+   for (NSObject<FlutterApplicationLifeCycleDelegate>* delegate in _delegates) {
+     if (!delegate) {
+       continue;
+     }
+     if ([delegate respondsToSelector:_cmd]) {
+       if ([delegate application:application openURL:url options:options]) {
+         return YES; // <<------ this return
+       }
+     }
+   }
+   return NO;
+ }
+     */
+    
+    // Custom URL schemes
   public func application(
     _ application: UIApplication,
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
     
     handleLink(url: url)
+    
+    // return true ，Interrupt subsequent plug-in calls，Functions with the same name in UniLinksPlugin will not be called
     return true
   }
 
